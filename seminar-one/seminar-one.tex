@@ -107,11 +107,9 @@
 
 
 
-\title{More Efficient DKGs}
-\author{Chelsea Komlo, University of Waterloo \\
-\and
-Mentored by Dan Shumow, Microsoft Research}
-\date[September 2020]{ \small Microsoft Research, September 2020}
+\title{Attacks and Fixes on \\ Distributed Key Generation Protocols}
+\author{Chelsea Komlo, University of Waterloo}
+\date[November 2021]{ Cryptography Reading Group, November 2021}
 
 \begin{document}
 \setbeamertemplate{itemize items}[triangle]
@@ -339,6 +337,49 @@ Gennaro, Rosario and Jarecki, Stanislaw and Krawczyk, Hugo and Rabin, Tal. Secur
   \end{itemize}
 \end{frame}
 
+\begin{frame}
+  \centering
+\begin{tikzpicture}
+\node at (0,0) {
+\scalebox{0.9} {
+  \procedure{GJKR Construction: Round One}{
+    \textbf{\underline{Participant i}}  \> \textbf{\underline{Other Participants}}  \\
+  \uncover<1-> { \secretone_i, b_i  \rgets \Zq \\ }
+  \uncover<2-> { (\{ \shareone_{i1}, \ldots, \shareone_{in}\}, \{\secretone_i, a_{i1}, \ldots, a_{i(t-1)} \}) \rgets \shamir.\issueshares(\secretone_i, n, t) \> \\ }
+  \uncover<3-> { \vsscommitone_i  = \langle A_{i0}, \ldots, A_{i(t-1)} \rangle \gets \shamir.\commit(\secretone_i, a_{i1}, \ldots, a_{i(t-1)}) \> \\ }
+  \uncover<4-> { (\{ \sharetwo_{i1}, \ldots, \sharetwo_{in}\}, \{b_i, \hat{a_{i1}}, \ldots, \hat{a_{i(t-1)}} \}) \rgets \shamir.\issueshares(b_i, n, t) \> \\ }
+  \uncover<5-> { \vsscommittwo_i  = \langle \hat{A_{i0}}, \ldots, \hat{A_{i(t-1)}} \rangle \gets \shamir.\commit(b_i, \hat{a_{i1}}, \ldots, \hat{a_{i(t-1)}}) \> \\ }
+  \uncover<6-> { \vsscommitthree_i  = \langle B_{i0}, \ldots, B_{i(t-1)} \rangle  \gets \langle A_{i0}\hat{A_i0}, \ldots,  A_{i(t-1)}\hat{A_i(t-1)}     \rangle \\ }
+%
+  \uncover<7-> { \qquad \qquad \sendmessageright{top=\text{ {\bf Broadcast}  $\vsscommitthree_i $   }}  \< \\}
+  \uncover<8-> { \qquad \qquad  \sendmessageright{top=\text{ {\bf Send} $\shareone_{ij},  \sharetwo_{ij}$ to player $j$   }}  \< \\ }
+  \uncover<9-> { \text{Check } g^{\shareone_{ij}}h^{\sharetwo_{ij}} \text{ is correct with respect to } \vsscommitthree_i \> \\ }
+  \uncover<10-> { \qual \text{ are the set of players where this check holds}   \> \\ }
+}
+}
+};
+\end{tikzpicture}
+\end{frame}
+
+
+\begin{frame}
+  \centering
+\begin{tikzpicture}
+\node at (0,0) {
+\scalebox{0.9} {
+  \procedure{GJKR Construction: Rounds Two and Three}{
+    \textbf{\underline{Participant i}}  \> \textbf{\underline{Other Participants}}  \\
+  \uncover<1-> { \qquad \qquad \sendmessageright{top=\text{ {\bf Broadcast}  $\vsscommitone_i $   }}  \< \\}
+  \uncover<2-> { \text{Check } \shamir.\verify(\shareone_{ji}, \vsscommitone_j) \iseq 1  \> \\ }
+  \uncover<3-> { \text{If any player $k$ failed, $t$ honest players combine shares to recover $\secretone_k$  }  \> \\ }
+%
+  \uncover<4-> { \sk_i = \sum_{k \in \qual} \shareone_k    \\ }
+  \uncover<5-> {  \pk \gets  \prod_{k \in \qual} A_{k0}  = g^{\sum_{i \in \qual} \secretone_i  }   \> \\ }
+}
+}
+};
+\end{tikzpicture}
+\end{frame}
 
 \begin{frame}
 
@@ -350,3 +391,42 @@ Gennaro, Rosario and Jarecki, Stanislaw and Krawczyk, Hugo and Rabin, Tal. Secur
 \end{document}
 
 
+\begin{figure}
+\begin{framed}
+
+    \noindent \textbf{Round One.} Each participant $P_i$ performs the following steps.
+    \begin{enumerate}[topsep=1ex]
+        \item Sample a random secret $s \rgets \Zq$ and a random blinding term $b \rgets \Zq$.
+        \item Perform  $(\{ \share_{i1}, \ldots, \share_{in}\}, \{s, a_{i1}, \ldots, a_{i(t-1)} \}) \rgets \shamir.\issueshares(s, n, t)$.
+        \item Perform $\vsscommit \gets \shamir.\commit(a_{i1}, \ldots, a_{i(t-1)})$. Let $\{A_{i0}, \ldots, A_{i(t-1)} \} \gets \vsscommit$.
+        \item Perform  $(\{ \share_{i1}', \ldots, \share_{in}'\}, \{b, a_{i1}', \ldots, a_{i(t-1)}' \} ) \rgets \shamir.\issueshares(b, n, t)$.
+
+        \item Generate $t$ Pedersen commitments, as $C_{i0} = A_{i0}h^b,\ C_{i1} = A_{i1}h^{a_{i1}'},\ \ldots$. % TODO define where these coefficients come from.
+        \item Broadcast $\vsscommit \gets \langle C_{i0}, \ldots, C_{i(t-1)} \rangle$.
+        \item Send $(\share_{i1}, \share_{i1}')$ to participant $j$.
+    \end{enumerate}
+
+    \smallskip
+    \noindent \textbf{Round Two.}
+    \begin{enumerate}[topsep=1ex]
+        \item Perform a modified $\shamir.\verify$ by checking
+        $ g^{\share_{ij}}h^{\share_{ij}'} \iseq \prod_{k=0}^t C_{jk}^{i^k} $
+
+        \item If any check fails, the players follow steps in Figure~\ref{fg:identify-cheaters} to identify cheaters.
+        \item The remaining players are denoted as $\qual$.
+    \end{enumerate}
+
+    \smallskip
+    \noindent \textbf{Round Three.}
+    \begin{enumerate}
+        \item Broadcast $\vsscommit_i$.
+        \item If $\shamir.\verify(\share_{ij}, \vsscommit_j) \neq 1$, report the misbehaving party.
+        \item Otherwise, each participant's secret key is $\sk_i \sum_{j \in \qual} \share_{ij}$.
+        \item The group's joint public key is $\pk = \prod_{j \in \qual} A_{j0}$
+    \end{enumerate}
+
+
+    \caption{\GJKRConstruction DKG WIP}
+    \label{fg:gjkr-construction}
+\end{framed}
+\end{figure}

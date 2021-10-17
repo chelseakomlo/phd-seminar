@@ -381,6 +381,21 @@ Gennaro, Rosario and Jarecki, Stanislaw and Krawczyk, Hugo and Rabin, Tal. Secur
 \end{tikzpicture}
 \end{frame}
 
+
+\begin{frame}
+  \frametitle{Takeaways}
+
+  \begin{itemize}
+    \item Distributed Key Generation protocols are a useful building block for distributing trust among a set of authorized parties.
+    \item[]
+    \item<2-> Properties taken for granted in the centralized model, such as uniform distribution of key material, are difficult to guarantee in a multi-party setting.
+    \item[]
+    \item<3-> Pedersen DKG is a simple DKG whose security is proven in some contexts but not in others.
+    \item[]
+    \item<4-> The GJKR construction is proven in a stand-alone manner, but requires more network rounds and computational complexity.
+  \end{itemize}
+\end{frame}
+
 \begin{frame}
 
   \huge
@@ -391,42 +406,3 @@ Gennaro, Rosario and Jarecki, Stanislaw and Krawczyk, Hugo and Rabin, Tal. Secur
 \end{document}
 
 
-\begin{figure}
-\begin{framed}
-
-    \noindent \textbf{Round One.} Each participant $P_i$ performs the following steps.
-    \begin{enumerate}[topsep=1ex]
-        \item Sample a random secret $s \rgets \Zq$ and a random blinding term $b \rgets \Zq$.
-        \item Perform  $(\{ \share_{i1}, \ldots, \share_{in}\}, \{s, a_{i1}, \ldots, a_{i(t-1)} \}) \rgets \shamir.\issueshares(s, n, t)$.
-        \item Perform $\vsscommit \gets \shamir.\commit(a_{i1}, \ldots, a_{i(t-1)})$. Let $\{A_{i0}, \ldots, A_{i(t-1)} \} \gets \vsscommit$.
-        \item Perform  $(\{ \share_{i1}', \ldots, \share_{in}'\}, \{b, a_{i1}', \ldots, a_{i(t-1)}' \} ) \rgets \shamir.\issueshares(b, n, t)$.
-
-        \item Generate $t$ Pedersen commitments, as $C_{i0} = A_{i0}h^b,\ C_{i1} = A_{i1}h^{a_{i1}'},\ \ldots$. % TODO define where these coefficients come from.
-        \item Broadcast $\vsscommit \gets \langle C_{i0}, \ldots, C_{i(t-1)} \rangle$.
-        \item Send $(\share_{i1}, \share_{i1}')$ to participant $j$.
-    \end{enumerate}
-
-    \smallskip
-    \noindent \textbf{Round Two.}
-    \begin{enumerate}[topsep=1ex]
-        \item Perform a modified $\shamir.\verify$ by checking
-        $ g^{\share_{ij}}h^{\share_{ij}'} \iseq \prod_{k=0}^t C_{jk}^{i^k} $
-
-        \item If any check fails, the players follow steps in Figure~\ref{fg:identify-cheaters} to identify cheaters.
-        \item The remaining players are denoted as $\qual$.
-    \end{enumerate}
-
-    \smallskip
-    \noindent \textbf{Round Three.}
-    \begin{enumerate}
-        \item Broadcast $\vsscommit_i$.
-        \item If $\shamir.\verify(\share_{ij}, \vsscommit_j) \neq 1$, report the misbehaving party.
-        \item Otherwise, each participant's secret key is $\sk_i \sum_{j \in \qual} \share_{ij}$.
-        \item The group's joint public key is $\pk = \prod_{j \in \qual} A_{j0}$
-    \end{enumerate}
-
-
-    \caption{\GJKRConstruction DKG WIP}
-    \label{fg:gjkr-construction}
-\end{framed}
-\end{figure}

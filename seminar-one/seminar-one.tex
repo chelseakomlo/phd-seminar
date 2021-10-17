@@ -319,7 +319,25 @@ Gennaro, Rosario and Jarecki, Stanislaw and Krawczyk, Hugo and Rabin, Tal. Secur
 \end{frame}
 
 
+\begin{frame}
+  \huge
+  \centering
+  GJKR Construction
+\end{frame}
 
+\begin{frame}
+  \frametitle{Overview}
+
+  \begin{itemize}
+    \item Prevents the key-bias attack by using blinded commitments and verifiable extraction techniques.
+    \item[]
+    \item<2-> Participants issue a blinded VSS commitment in round one and then unblind this commitment in round three.
+    \item[]
+    \item<3-> Share correctness is verified with respect to the blinded commitment.
+    \item[]
+    \item<4-> If the adversary cheats in the last round, their contribution can be extracted by honest players (ensuring key material remains unbiased).
+  \end{itemize}
+\end{frame}
 
 
 \begin{frame}

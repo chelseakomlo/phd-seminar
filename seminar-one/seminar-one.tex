@@ -1,0 +1,334 @@
+% https://nymity.ch/tikz/
+
+\documentclass[hyperref={pdfpagelabels=true},table,dvipsnames,14pt,aspectratio=169]{beamer}
+\usetheme{Boadilla}
+\setbeamertemplate{navigation symbols}{}
+
+\usepackage{amsthm, amsfonts, amssymb, amsmath, graphicx}
+\usepackage{amsmath}
+\usepackage{mathtools}
+\usepackage{amsfonts, txfonts}
+\usepackage{wasysym}
+\usepackage{xcolor}
+\usepackage{caption}
+\usepackage{comment}
+\usepackage{cryptocode}
+\urlstyle{same}
+\usepackage{framed}
+\FrameSep5pt
+
+\usepackage{multicol}
+
+%\usepackage[flushmargin]{footmisc}
+%\setlength\footnotemargin{1em}
+
+\usepackage{graphicx}
+\graphicspath{ {images/} }
+
+\usepackage{tikz}
+\usepackage{tikzpeople}
+\usepackage{pgfplots}
+\usetikzlibrary{arrows}
+
+\usetikzlibrary{positioning}
+\usetikzlibrary{calc}
+\usetikzlibrary{shapes}
+\usetikzlibrary{shapes.callouts}
+
+\usepackage{capt-of}
+\beamertemplatenavigationsymbolsempty
+\setbeamercovered{transparent}
+
+
+\input{macros}
+
+
+% Method to add an item that will appear in every slide
+%\addtobeamertemplate{footline}{%
+%
+%  \tikz[remember picture, overlay] \fill[blue] (current page.south east)
+%    rectangle ++(1cm,2cm);
+%
+%}{}
+
+
+\pgfdeclarelayer{background}
+\pgfdeclarelayer{backbackground}
+\pgfdeclarelayer{foreground}
+\pgfsetlayers{backbackground,background,main,foreground}   %% some additional layers for demo
+
+\usetikzlibrary{shapes,decorations.shapes}
+\tikzset{>=latex}
+
+
+
+\makeatletter
+\pgfdeclareshape{document}{
+\inheritsavedanchors[from=rectangle] % this is nearly a rectangle
+\inheritanchorborder[from=rectangle]
+\inheritanchor[from=rectangle]{center}
+\inheritanchor[from=rectangle]{north}
+\inheritanchor[from=rectangle]{south}
+\inheritanchor[from=rectangle]{west}
+\inheritanchor[from=rectangle]{east}
+% ... and possibly more
+\backgroundpath{% this is new
+% store lower right in xa/ya and upper right in xb/yb
+\southwest \pgf@xa=\pgf@x \pgf@ya=\pgf@y
+\northeast \pgf@xb=\pgf@x \pgf@yb=\pgf@y
+% compute corner of ‘‘flipped page’’
+\pgf@xc=\pgf@xb \advance\pgf@xc by-10pt % this should be a parameter
+\pgf@yc=\pgf@yb \advance\pgf@yc by-10pt
+% construct main path
+\pgfpathmoveto{\pgfpoint{\pgf@xa}{\pgf@ya}}
+\pgfpathlineto{\pgfpoint{\pgf@xa}{\pgf@yb}}
+\pgfpathlineto{\pgfpoint{\pgf@xc}{\pgf@yb}}
+\pgfpathlineto{\pgfpoint{\pgf@xb}{\pgf@yc}}
+\pgfpathlineto{\pgfpoint{\pgf@xb}{\pgf@ya}}
+\pgfpathclose
+% add little corner
+\pgfpathmoveto{\pgfpoint{\pgf@xc}{\pgf@yb}}
+\pgfpathlineto{\pgfpoint{\pgf@xc}{\pgf@yc}}
+\pgfpathlineto{\pgfpoint{\pgf@xb}{\pgf@yc}}
+\pgfpathlineto{\pgfpoint{\pgf@xc}{\pgf@yc}}
+}
+}
+\makeatother
+
+
+\usepackage{filecontents}
+
+\begin{filecontents}{msr-start.bib}
+
+
+
+\end{filecontents}
+
+
+
+
+\title{More Efficient DKGs}
+\author{Chelsea Komlo, University of Waterloo \\
+\and
+Mentored by Dan Shumow, Microsoft Research}
+\date[September 2020]{ \small Microsoft Research, September 2020}
+
+\begin{document}
+\setbeamertemplate{itemize items}[triangle]
+
+\tikzstyle{doc}=[%
+draw,
+thick,
+align=center,
+color=black,
+shape=document,
+minimum width=12mm,
+minimum height=15.2mm,
+shape=document,
+inner sep=2ex,
+]
+
+\begin{frame}
+        \thispagestyle{empty}
+        \maketitle
+\end{frame}
+
+\begin{frame}
+  \huge
+  \centering
+  Background
+\end{frame}
+
+\begin{frame}
+  \frametitle{Shamir Secret Sharing}
+
+  \begin{itemize}
+    \item<1-> Allows a \emph{dealer} to share a secret $\secretone$ among $n$ participants, where $t$ participants must cooperate to recover $\secretone$.
+    \item[]
+    \item<2-> $f$ is the polynomial defined by the coefficients
+
+      \[f = \secretone + a_1 x + a_2 x^2 + a_3 x^3 + \ldots + a_{t-1}x^{t-1}  \]
+
+    \item[]
+    \item<3-> Each participant $i \in \{1, \ldots, n \}$ receives a share $\shareone_i \gets f(i) $.
+    \item[]
+    \item<4-> Recovering $\secretone$ is done by polynomial interpolation.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Verifiable Secret Sharing}
+
+  \begin{itemize}
+    \item<1-> Allows participants to verify their share $\shareone_i = f(i)$ is on the same polynomial as all other participants.
+    \item[]
+    \item<2-> $\vsscommitone \gets \langle A_0, A_1, \ldots, A_{t-1}  \rangle$, where
+
+      \[ A_0 \gets g^{\secretone},\ A_1 \gets g^{a_1}, \ldots \]
+    \item[]
+    \item<3-> Perform polynomial interpolation in the exponent to check that $g^{f(i)}$ is a point on $g^f$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Distributed Key Generation (DKGs)}
+
+  \begin{itemize}
+    \item<1-> $n$ parties participate, all equally trusted.
+    \item[]
+    \item<2-> $\mathit{KeyGen}(\lambda, n, t) \rightarrow (\pk, \{\sk_1, \ldots, \sk_n \})$: $n$ parties cooperate to generate a public key $\pk$ and $n$ secret key shares.
+    \item[]
+    \item<3-> $\mathit{Recover}(\{ \sk_i \}_C) \rightarrow \sk$: Assuming $\lvert C \rvert \geq t$,
+      $\sk$ can be recovered by combining $\{ \sk_i \}_C$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Use Cases for DKGs}
+
+  \begin{itemize}
+    \item<1-> Key generation for threshold signatures
+    \item[]
+    \item<2-> Distributed PRFs
+    \item[]
+    \item<3-> Anonymous token issuance (Privacy Pass)
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Correctness of a DKG}
+
+  \begin{itemize}
+    \item<1-> \textbf{(C1)}: All subsets of $t$ shares define the same secret key $\sk$ (or any subset fulfilling the required access structure).
+\let\thefootnote\relax\footnote{
+Gennaro, Rosario and Jarecki, Stanislaw and Krawczyk, Hugo and Rabin, Tal. Secure Distributed Key Generation for Discrete-Log Based Cryptosystems. Journal of Cryptology, 2007
+}
+    \item[]
+    \item<2-> \textbf{(C2)}: All parties that honestly followed the protocol have the same value of the public key $\pk$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Security: Two Approaches}
+
+  \begin{itemize}
+    \item<1-> \emph{Secrecy}: Nothing about $\sk$ is revealed beyond what is revealed by $\pk$.
+      Or, there exists a simulator that can simulate the protocol to an adversary for a challenge public key $\pk$.
+    \item[]
+    \item<2-> \emph{Relative Security}: Prove the security of the DKG in the context of demonstrating security of another protocol.
+  \footnote{
+  Kobi Gurkan, Philipp Jovanovic, Mary Maller, Sarah Meiklejohn, Gilad Stern, Alin Tomescu.
+  Aggregatable Distributed Key Generation, EUROCRYPT 2021 }
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Requirement of Security: Uniform Distribution}
+
+  \begin{itemize}
+    \item<1-> In a single-party setting, ensuring that a secret key is randomly sampled is easy.
+    \item[]
+    \item<2-> In a multi-party setting, where the adversary participates in key generation,
+      ensuring the output key is uniformly distributed is harder.
+  \end{itemize}
+\end{frame}
+
+
+\begin{frame}
+  \frametitle{Prior Work (Non-Pairing Based DKGs)}
+
+  \begin{itemize}
+    \item<1-> Pedersen DKG
+  \begin{itemize}
+      \item<2-> GJKR showed that an adversary can bias key material, but by a limited amount.
+      \item<3-> Relative proof of security, in the context for Schnorr threshold signing.
+  \footnote{
+  Rosario Gennaro, Stanislaw Jarecki, Hugo Krawczyk, Tal Rabin.
+  Secure Applications of Pedersen's Distributed Key Generation Protocol,
+  CT-RSA, 2003.}
+  \end{itemize}
+    \item[]
+    \item<4-> GJKR
+  \begin{itemize}
+      \item<5-> Adds an additional round to ensure protection against key bias.
+      \item<6-> Proof of secrecy.
+  \end{itemize}
+  \end{itemize}
+\end{frame}
+
+
+
+\begin{frame}
+  \huge
+  \centering
+  Key-Bias Attack against Pedersen DKG
+\end{frame}
+
+\begin{frame}
+  \centering
+\begin{tikzpicture}
+\node at (0,0) {
+\scalebox{0.9} {
+  \procedure{Pedersen DKG}{
+  \textbf{Participant i}  \> \textbf{Other Participants}  \\
+  \uncover<1-> { \secretone_i  \rgets \Zq \\ }
+  \uncover<2-> { (\{ \shareone_{i1}, \ldots, \shareone_{in}\}, \{\secretone_i, a_{i1}, \ldots, a_{i(t-1)} \}) \rgets \shamir.\issueshares(\secretone_i, n, t) \> \\ }
+  \uncover<3-> { \vsscommitone_i  = \langle A_{i0}, \ldots, A_{i(t-1)} \rangle \gets \shamir.\commit(\secretone_i, a_{i1}, \ldots, a_{i(t-1)}) \> \\ }
+  \uncover<4-> { \> \sendmessageright{top=\text{ {\bf Broadcast}  $\vsscommitone_i $   }}  \< \\}
+  \uncover<5-> { \> \sendmessageright{top=\text{ {\bf Send} $\shareone_{ij} $   }}  \< \\ }
+  \uncover<6-> {  \shamir.\verify(\shareone_i, \vsscommitone_j) \iseq 1  \> \\ }
+  \uncover<7-> { \sk_i = \sum_{k \in \qual} \shareone_k,\ \ \text{$\qual$ are the players that issued valid shares. }    \\ }
+  \uncover<8-> {  \pk \gets  \prod_{k \in \qual} A_{k0}  = g^{\sum_{i \in \qual} \secretone_i  }   \> \\ }
+}
+}
+};
+\end{tikzpicture}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Key Bias Attack: High Level}
+
+  \begin{itemize}
+    \item Performed by a \emph{rushing adversary}, the adversary that ``speaks last'' in the protocol.
+    \item[]
+    \item<2-> In Pedersen DKG, a rushing adversary can learn the output public key before other participants.
+    \item[]
+    \item<3-> Nothing prevents a rushing adversary from adaptively choosing their contributions to bias key material.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \centering
+\begin{tikzpicture}
+\node at (0,0) {
+\scalebox{0.9} {
+  \procedure{Key Bias Attack by a Rushing Adversary}{
+  \textbf{Adversary}  \> \textbf{Other Participants}  \\
+  \uncover<1-> { \> \sendmessageleft{top=\text{ {\bf Broadcast}  $\vsscommitone_i$   }}   \\}
+  \uncover<2-> { \> \sendmessageleft{top=\text{ {\bf Send} $\shareone_{ij}$   }}   \\ }
+  \uncover<3-> { \text{Until $\pk$ is even, do:}   } \\
+  \uncover<4-> { \ \ \ \ \ \ \secretone_A  \rgets \Zq;\ \text{ check }  \pk = g^{\secretone_A} \cdot  \prod_{k =1; k \neq A}^n A_{k0}    \\ }
+  \uncover<5-> { (\{ \shareone_{A1}, \ldots, \shareone_{An}\}, \{\secretone_A, a_{A1}, \ldots, a_{A(t-1)} \}) \rgets \shamir.\issueshares(\secretone_A, n, t) \> \\ }
+  \uncover<6-> { \vsscommitone_A  = \langle A_{A0}, \ldots, A_{A(t-1)} \rangle \gets \shamir.\commit(\secretone_A, a_{A1}, \ldots, a_{A(t-1)}) \> \\ }
+  \uncover<7-> { \> \sendmessageright{top=\text{ {\bf Broadcast}  $\vsscommitone_A $   }}  \< \\}
+  \uncover<8-> { \> \sendmessageright{top=\text{ {\bf Send} $\shareone_{Aj} $   }}  \< \\ }
+}
+}
+};
+\end{tikzpicture}
+\end{frame}
+
+
+
+
+
+\begin{frame}
+
+  \huge
+  \centering
+  Thank you!
+\end{frame}
+
+\end{document}
+
+

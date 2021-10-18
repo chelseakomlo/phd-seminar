@@ -107,7 +107,7 @@
 
 
 
-\title{Attacks and Fixes on \\ Distributed Key Generation Protocols}
+\title{Attacks and Fixes on Distributed~Key~Generation~Protocols}
 \author{Chelsea Komlo, University of Waterloo}
 \date[November 2021]{ Cryptography Reading Group, November 2021}
 
@@ -346,10 +346,10 @@ Gennaro, Rosario and Jarecki, Stanislaw and Krawczyk, Hugo and Rabin, Tal. Secur
     \textbf{\underline{Participant i}}  \> \textbf{\underline{Other Participants}}  \\
   \uncover<1-> { \secretone_i, b_i  \rgets \Zq \\ }
   \uncover<2-> { (\{ \shareone_{i1}, \ldots, \shareone_{in}\}, \{\secretone_i, a_{i1}, \ldots, a_{i(t-1)} \}) \rgets \shamir.\issueshares(\secretone_i, n, t) \> \\[1mm] }
-  \uncover<3-> { \vsscommitone_i  = \langle A_{i0}, \ldots, A_{i(t-1)} \rangle \gets \shamir.\commit(\secretone_i, a_{i1}, \ldots, a_{i(t-1)}) \> \\[1mm] }
+  \uncover<3-> { \vsscommitone_i  = \langle A_{i0}, \ldots, A_{i(t-1)} \rangle \gets \shamir.\commit(g, \secretone_i, a_{i1}, \ldots, a_{i(t-1)}) \text{\algcom Commit with base $g$} \> \\ }
   \uncover<4-> { (\{ \sharetwo_{i1}, \ldots, \sharetwo_{in}\}, \{b_i, \hat{a_{i1}}, \ldots, \hat{a_{i(t-1)}} \}) \rgets \shamir.\issueshares(b_i, n, t) \> \\[1mm] }
-  \uncover<5-> { \vsscommittwo_i  = \langle \hat{A}_{i0}, \ldots, \hat{A}_{i(t-1)} \rangle \gets \shamir.\commit(b_i, \hat{a_{i1}}, \ldots, \hat{a_{i(t-1)}}) \> \\[1mm] }
-  \uncover<6-> { \vsscommitthree_i  \gets \langle (A_{i0}\hat{A}_{i0}),  \ldots,  (A_{i(t-1)}\hat{A}_{i(t-1)})   \rangle  \\[1mm] }
+  \uncover<5-> { \vsscommittwo_i  = \langle \hat{A}_{i0}, \ldots, \hat{A}_{i(t-1)} \rangle \gets \shamir.\commit(h, b_i, \hat{a_{i1}}, \ldots, \hat{a_{i(t-1)}}) \text{\algcom Commit with base $h$} \> \\[1mm] }
+  \uncover<6-> { \vsscommitthree_i  \gets \langle (A_{i0}\hat{A}_{i0}),  \ldots,  (A_{i(t-1)}\hat{A}_{i(t-1)}) \rangle  \text{\algcom Pedersen commitment to each coefficient }  \\[1mm] }
 %
   \uncover<7-> { \qquad \qquad \qquad \qquad \qquad \qquad \sendmessageright{top=\text{ {\bf Broadcast}  $\vsscommitthree_i $   }}  \< \\[1mm] }
   \uncover<8-> { \qquad \qquad \qquad \qquad \qquad \qquad  \sendmessageright{top=\text{ {\bf Send} $\shareone_{ij},  \sharetwo_{ij}$ to player $j$   }}  \< \\ }
@@ -380,6 +380,20 @@ Gennaro, Rosario and Jarecki, Stanislaw and Krawczyk, Hugo and Rabin, Tal. Secur
 }
 };
 \end{tikzpicture}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Uniform Distribution of Key Material}
+
+  \begin{itemize}
+    \item Any cheating party must choose their commitmentments $\vsscommitone_A, \vsscommittwo_A,  \vsscommitthree_A$ having seen only $\vsscommitthree_i, \ldots$ from other players.
+    \item[]
+    \item<2-> Pedersen commitments guarantee that $g^ih^j$ will not reveal any information about $g^i$.
+    \item[]
+    \item<3-> If a player disqualifies themselves in round $3$ (after learning $\vsscommitone_i, \ldots$), $\secretone_A$ can be extracted (assuming $t$ honest parties).
+    \item[]
+    \item<4-> So even if player $A$ is disqualified, the public key will remain unbiased even though $\vsscommitone_i, \ldots$ has been published in the clear.
+  \end{itemize}
 \end{frame}
 
 

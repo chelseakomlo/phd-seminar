@@ -160,24 +160,23 @@ inner sep=2ex,
   \begin{itemize}
     \item<1-> Allows participants to verify their share $\shareone_i = f(i)$ is on the same polynomial as all other participants.
     \item[]
-    \item<2-> $\vsscommitone \gets \langle A_0, A_1, \ldots, A_{t-1}  \rangle$, where
+    \item<2-> Issue a commitment to $f$ as $\vsscommitone \gets \langle A_0, A_1, \ldots, A_{t-1}  \rangle$, where
 
       \[ A_0 \gets g^{\secretone},\ A_1 \gets g^{a_1}, \ldots \]
     \item[]
-    \item<3-> Perform polynomial interpolation in the exponent to check that $g^{f(i)}$ is a point on $g^f$.
+    \item<3-> Verification of shares requires performing polynomial interpolation in the exponent to check that $g^{f(i)}$ is a point on $g^f$.
   \end{itemize}
 \end{frame}
 
 \begin{frame}
-  \frametitle{Distributed Key Generation (DKGs)}
+  \frametitle{Distributed Key Generation (informal)}
 
   \begin{itemize}
     \item<1-> $n$ parties participate, all equally trusted.
     \item[]
-    \item<2-> $\mathit{KeyGen}(\lambda, n, t) \rightarrow (\pk, \{\sk_1, \ldots, \sk_n \})$: $n$ parties cooperate to generate a public key $\pk$ and $n$ secret key shares.
+    \item<2-> Goal is to generate a secret that all $n$ parties contribute to but no party knows; $t$ parties are required to recover.
     \item[]
-    \item<3-> $\mathit{Recover}(\{ \sk_i \}_C) \rightarrow \sk$: Assuming $\lvert C \rvert \geq t$,
-      $\sk$ can be recovered by combining $\{ \sk_i \}_C$.
+    \item<3-> A common mechanism is to perform $n$-wise secret sharing with an aggregation step at the end (more on this later).
   \end{itemize}
 \end{frame}
 
@@ -185,11 +184,28 @@ inner sep=2ex,
   \frametitle{Use Cases for DKGs}
 
   \begin{itemize}
-    \item<1-> Key generation for threshold signatures
+    \item<1-> Key generation for threshold or multiparty signatures
     \item[]
-    \item<2-> Distributed PRFs
+    \item<2-> Distributed Pseudorandom Functions
     \item[]
-    \item<3-> Anonymous token issuance (Privacy Pass)
+    \item<3-> Key generation for anonymous token issuance (Privacy Pass)
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Distributed Key Generation (cont'd)}
+
+  \begin{itemize}
+    \item<1-> $\mathit{KeyGen}(\lambda, n, t) \rightarrow (\langle \pk, \qual \rangle, \langle \pk, \qual, \{\sk_1, \ldots, \sk_n \} \rangle)$
+    \begin{itemize}
+      \item<2-> Public output is public key $\pk$ and the set $\qual$ of parties that remain at the end.
+      \item<3-> Depending on the construction, the protocol kicks out cheating parties and continues, so $\lvert \qual \rvert \leq n$.
+      \item<4-> Private output to each party additionally includes their secret key share $\sk_i$.
+    \end{itemize}
+
+    \item[]
+    \item<5-> $\mathit{Recover}(\{ \sk_i \}_C) \rightarrow \sk$: Assuming $\lvert C \rvert \geq t$,
+      $\sk$ can be recovered by combining $\{ \sk_i \}_C$.
   \end{itemize}
 \end{frame}
 
@@ -211,7 +227,7 @@ Gennaro, Rosario and Jarecki, Stanislaw and Krawczyk, Hugo and Rabin, Tal. Secur
 
   \begin{itemize}
     \item<1-> \emph{Secrecy}: Nothing about $\sk$ is revealed beyond what is revealed by $\pk$.
-      Or, there exists a simulator that can simulate the protocol to an adversary for a challenge public key $\pk$.
+      Or, there exists a simulator that can simulate the protocol to an adversary for a challenge public key $\pk$ (from GJKR).
     \item[]
     \item<2-> \emph{Relative Security}: Prove the security of the DKG in the context of demonstrating security of another protocol.
   \footnote{
@@ -351,6 +367,7 @@ Gennaro, Rosario and Jarecki, Stanislaw and Krawczyk, Hugo and Rabin, Tal. Secur
   \uncover<5-> { \vsscommittwo_i  = \langle \hat{A}_{i0}, \ldots, \hat{A}_{i(t-1)} \rangle \gets \shamir.\commit(h, b_i, \hat{a_{i1}}, \ldots, \hat{a_{i(t-1)}}) \text{\algcom Commit with base $h$} \> \\[1mm] }
   \uncover<6-> { \vsscommitthree_i  \gets \langle (A_{i0}\hat{A}_{i0}),  \ldots,  (A_{i(t-1)}\hat{A}_{i(t-1)}) \rangle  \text{\algcom Pedersen commitment to each coefficient }  \\[1mm] }
 %
+  B
   \uncover<7-> { \qquad \qquad \qquad \qquad \qquad \qquad \sendmessageright{top=\text{ {\bf Broadcast}  $\vsscommitthree_i $   }}  \< \\[1mm] }
   \uncover<8-> { \qquad \qquad \qquad \qquad \qquad \qquad  \sendmessageright{top=\text{ {\bf Send} $\shareone_{ij},  \sharetwo_{ij}$ to player $j$   }}  \< \\ }
   \uncover<9-> { \text{if } \shamir.\verify(\shareone_{ji}, \sharetwo_{ji}, \vsscommitthree_k) = 1:\ \qual \gets \qual\ \bigcup\ \{i\}  \> \\ }
@@ -368,14 +385,13 @@ Gennaro, Rosario and Jarecki, Stanislaw and Krawczyk, Hugo and Rabin, Tal. Secur
 \scalebox{0.9} {
   \procedure{GJKR Construction: Round Three}{
     \textbf{\underline{Participant i}}  \> \textbf{\underline{Other Participants}}  \\
-  \uncover<1-> { \qquad \qquad \qquad \sendmessageright{top=\text{ {\bf Broadcast}  $\vsscommitone_i $   }}  \< \\[1mm]}
-  \uncover<2-> { \gamma = 0;\ \qual' \gets \qual \> \\[1mm] }
-  \uncover<3-> { \text{For all $j$ where } \shamir.\verify(\shareone_{ji}, \vsscommitone_j) \neq 1:  \> \\[1mm] }
-  \uncover<4-> { \qquad \qquad \gamma \gets \gamma + \shamir.\recover(\{ \shareone_{ji} \}_{j \in C} )   \> \\[1mm] }
-  \uncover<4-> { \qquad \qquad  \qual' \gets \qual' \setminus \{ j \}   \> \\[1mm] }
+  \uncover<1-> { \qquad \qquad \qquad \sendmessageright{top=\text{ {\bf Broadcast}  $\vsscommitone_i $   }}  \< \\[2ex]}
+  \uncover<2-> { \excluded \gets \emptyset \> \\[1ex] }
+  \uncover<3-> { \text{For all $j$ where } \shamir.\verify(\shareone_{ji}, \vsscommitone_j) \neq 1:  \> \\[2ex] }
+  \uncover<4-> { \qquad \qquad  \excluded \gets \excluded \cup \{ j \}   \> \\[2ex] }
 %
-  \uncover<5-> { \sk_i = \gamma + \sum_{k \in \qual'} \shareone_k     \\[1mm] }
-  \uncover<6-> {  \pk \gets  \prod_{k \in \qual} A_{k0}  = g^{\sum_{i \in \qual} \secretone_i  }    \> \\[1mm] }
+  \uncover<5-> { \sk_i = \sum_{j \in \excluded} \secretone + \sum_{k \in ( \qual \setminus \excluded)} \shareone_k     \\[2ex] }
+  \uncover<6-> {  \pk \gets  \prod_{k \in \qual} A_{k0}  = g^{\sum_{i \in \qual} \secretone_i  }    \> \\[2ex] }
 }
 }
 };
@@ -386,13 +402,13 @@ Gennaro, Rosario and Jarecki, Stanislaw and Krawczyk, Hugo and Rabin, Tal. Secur
   \frametitle{Uniform Distribution of Key Material}
 
   \begin{itemize}
-    \item Any cheating party must choose their commitmentments $\vsscommitone_A, \vsscommittwo_A,  \vsscommitthree_A$ having seen only $\vsscommitthree_i, \ldots$ from other players.
+    \item Cheating parties must choose their contributions having seen only the blinded commitment $\vsscommitthree_i$ from other players.
     \item[]
-    \item<2-> Pedersen commitments guarantee that $g^ih^j$ will not reveal any information about $g^i$.
+    \item<2-> Pedersen commitments guarantee that $H_i = g^ih^j$ will not reveal any information about $g^i$.
     \item[]
-    \item<3-> If a player disqualifies themselves in round $3$ (after learning $\vsscommitone_i, \ldots$), $\secretone_A$ can be extracted (assuming $t$ honest parties).
+    \item<3-> If player $A$ cheats and is kicked out in round $3$,  $\secretone_A$ can be extracted (assuming $t$ honest parties).
     \item[]
-    \item<4-> So even if player $A$ is disqualified, the public key will remain unbiased even though $\vsscommitone_i, \ldots$ has been published in the clear.
+    \item<4-> So key material will remain unbiased even if a player cheats in the last round after learning $\pk$.
   \end{itemize}
 \end{frame}
 

@@ -136,15 +136,17 @@ inner sep=2ex,
   \frametitle{Distributed Key Generation (informal)}
 
   \begin{itemize}
-    \item<1-> $n$ parties participate, all equally trusted.
+    \item<1-> Generating key material without relying on a trusted entity is often desirable for distributed protocols.
     \item[]
-    \item<2-> Goal is to:
+    \item<2-> In a DKG, $n$ parties (chosen beforehand) participate, all equally trusted.
+    \item[]
+    \item<3-> Goal is to:
   \begin{itemize}
-    \item<3-> Generate a secret that all $n$ parties contribute to but no party knows
-    \item<4-> $t$ parties are required to recover.
+    \item<4-> Generate a secret that all $n$ parties contribute to but no party knows
+    \item<5-> $t$ parties are required to recover.
   \end{itemize}
     \item[]
-    \item<5-> A common mechanism is to perform $n$-wise secret sharing with an aggregation step at the end (more on this later).
+    \item<6-> A common mechanism is to perform $n$-wise secret sharing with an aggregation step at the end (more on this later).
   \end{itemize}
 \end{frame}
 

@@ -131,6 +131,35 @@ inner sep=2ex,
         \maketitle
 \end{frame}
 
+
+\begin{frame}
+  \frametitle{Distributed Key Generation (informal)}
+
+  \begin{itemize}
+    \item<1-> $n$ parties participate, all equally trusted.
+    \item[]
+    \item<2-> Goal is to:
+  \begin{itemize}
+    \item<3-> Generate a secret that all $n$ parties contribute to but no party knows
+    \item<4-> $t$ parties are required to recover.
+  \end{itemize}
+    \item[]
+    \item<5-> A common mechanism is to perform $n$-wise secret sharing with an aggregation step at the end (more on this later).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Use Cases for DKGs}
+
+  \begin{itemize}
+    \item<1-> Key generation for threshold or multiparty signatures
+    \item[]
+    \item<2-> Distributed Pseudorandom Functions
+    \item[]
+    \item<3-> Key generation for anonymous token issuance (Privacy Pass)
+  \end{itemize}
+\end{frame}
+
 \begin{frame}
   \huge
   \centering
@@ -169,43 +198,34 @@ inner sep=2ex,
 \end{frame}
 
 \begin{frame}
-  \frametitle{Distributed Key Generation (informal)}
-
-  \begin{itemize}
-    \item<1-> $n$ parties participate, all equally trusted.
-    \item[]
-    \item<2-> Goal is to generate a secret that all $n$ parties contribute to but no party knows; $t$ parties are required to recover.
-    \item[]
-    \item<3-> A common mechanism is to perform $n$-wise secret sharing with an aggregation step at the end (more on this later).
-  \end{itemize}
+  \huge
+  \centering
+  Distributed Key Generation
 \end{frame}
 
 \begin{frame}
-  \frametitle{Use Cases for DKGs}
+  \frametitle{DKG Definition}
+
+  A DKG is the tuple $(\keygen, \recover)$, such that:
 
   \begin{itemize}
-    \item<1-> Key generation for threshold or multiparty signatures
-    \item[]
-    \item<2-> Distributed Pseudorandom Functions
-    \item[]
-    \item<3-> Key generation for anonymous token issuance (Privacy Pass)
-  \end{itemize}
-\end{frame}
-
-\begin{frame}
-  \frametitle{Distributed Key Generation (cont'd)}
-
-  \begin{itemize}
-    \item<1-> $\mathit{KeyGen}(\lambda, n, t) \rightarrow (\langle \pk, \qual \rangle, \langle \pk, \qual, \{\sk_1, \ldots, \sk_n \} \rangle)$
+    \item<2-> $\mathit{KeyGen}(\lambda, n, t) \rightarrow ( \pk, \qual, \{\sk_1, \ldots, \sk_n \} )$
     \begin{itemize}
-      \item<2-> Public output is public key $\pk$ and the set $\qual$ of parties that remain at the end.
-      \item<3-> Depending on the construction, the protocol kicks out cheating parties and continues, so $\lvert \qual \rvert \leq n$.
-      \item<4-> Private output to each party additionally includes their secret key share $\sk_i$.
-    \end{itemize}
+      \item<3-> A probabilistic protocol among $n$ predetermined parties.
+      \item<4-> Output to each party includes:
+    \begin{enumerate}
+      \item<5->[1.] Public key $\pk$
+      \item<6->[2.] The set $\qual$ of parties remaining at the end, where $t \leq \lvert \qual \rvert \leq n$ (because cheating parties are kicked out during protocol execution).
+      \item<7->[3.] Their secret key share $\sk_i$.
+    \end{enumerate}
 
+    \end{itemize}
     \item[]
-    \item<5-> $\mathit{Recover}(\{ \sk_i \}_C) \rightarrow \sk$: Assuming $\lvert C \rvert \geq t$,
-      $\sk$ can be recovered by combining $\{ \sk_i \}_C$.
+    \item<8-> $\mathit{Recover}(\{ \sk_i \}_C) \rightarrow \sk$
+    \begin{itemize}
+      \item<9-> A deterministic algorithm performed by one entity.
+      \item<10-> Assuming $\lvert C \rvert \geq t$, $\sk$ is recovered by combining $\{ \sk_i \}_C$.
+    \end{itemize}
   \end{itemize}
 \end{frame}
 
@@ -213,12 +233,12 @@ inner sep=2ex,
   \frametitle{Correctness of a DKG}
 
   \begin{itemize}
-    \item<1-> \textbf{(C1)}: All subsets of $t$ shares define the same secret key $\sk$ (or any subset fulfilling the required access structure).
+    \item<1-> All subsets of $t$ shares define the same secret key $\sk$ (or any subset fulfilling the required access structure).
 \let\thefootnote\relax\footnote{
 Gennaro, Rosario and Jarecki, Stanislaw and Krawczyk, Hugo and Rabin, Tal. Secure Distributed Key Generation for Discrete-Log Based Cryptosystems. Journal of Cryptology, 2007
 }
     \item[]
-    \item<2-> \textbf{(C2)}: All parties that honestly followed the protocol have the same value of the public key $\pk$.
+    \item<2-> All parties that honestly followed the protocol have the same value of the public key $\pk$.
   \end{itemize}
 \end{frame}
 
@@ -226,13 +246,35 @@ Gennaro, Rosario and Jarecki, Stanislaw and Krawczyk, Hugo and Rabin, Tal. Secur
   \frametitle{Security: Two Approaches}
 
   \begin{itemize}
-    \item<1-> \emph{Secrecy}: Nothing about $\sk$ is revealed beyond what is revealed by $\pk$.
-      Or, there exists a simulator that can simulate the protocol to an adversary for a challenge public key $\pk$ (from GJKR).
+    \item<1-> \emph{Stand-Alone}: The DKG can be proven secure without reference to how it is used.
+    \begin{itemize}
+      \item<2-> Nothing about $\sk$ is revealed beyond what is revealed by $\pk$.
+      \item<3-> Concretely, there exists a simulator that can simulate the protocol to an adversary for a challenge public key $\pk$ (from GJKR).
+    \end{itemize}
+
     \item[]
-    \item<2-> \emph{Relative Security}: Prove the security of the DKG in the context of demonstrating security of another protocol.
+    \item<4-> \emph{Contextual}: Prove the security of the DKG in the context of demonstrating security of the protocol in which it is used.
   \footnote{
   Kobi Gurkan, Philipp Jovanovic, Mary Maller, Sarah Meiklejohn, Gilad Stern, Alin Tomescu.
   Aggregatable Distributed Key Generation, EUROCRYPT 2021 }
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Security: Two Approaches (cont'd)}
+
+  \begin{itemize}
+    \item<1-> \emph{Stand-Alone}:
+  \begin{itemize}
+    \item<2-> Pro: Proving security means that the DKG can be used in any context.
+    \item<3-> Con: Very hard definition to achieve, requires guaranteed output delivery as adversaries can simply stop participating.
+    \end{itemize}
+    \item[]
+    \item<4-> \emph{Contextual}:
+  \begin{itemize}
+    \item<5-> Pro: Allows for more efficient protocols to be proven secure (more on this later).
+    \item<6-> Con: Proofs are unwieldy and requires proving the security of the DKG over and over in different use cases.
+    \end{itemize}
   \end{itemize}
 \end{frame}
 
@@ -291,7 +333,7 @@ Gennaro, Rosario and Jarecki, Stanislaw and Krawczyk, Hugo and Rabin, Tal. Secur
   \uncover<4-> { \> \sendmessageright{top=\text{ {\bf Broadcast}  $\vsscommitone_i $   }}  \< \\}
   \uncover<5-> { \> \sendmessageright{top=\text{ {\bf Send} $\shareone_{ij} $   }}  \< \\ }
   \uncover<6-> {  \shamir.\verify(\shareone_i, \vsscommitone_j) \iseq 1  \> \\ }
-  \uncover<7-> { \sk_i = \sum_{k \in \qual} \shareone_k,\ \ \text{$\qual$ are the players that issued valid shares. }    \\ }
+  \uncover<7-> { \sk_i = \sum_{k \in \qual} \shareone_k \lambda_k,\ \ \text{$\qual$ are the players that issued valid shares. }    \\ }
   \uncover<8-> {  \pk \gets  \prod_{k \in \qual} A_{k0}  = g^{\sum_{i \in \qual} \secretone_i  }   \> \\ }
 }
 }
@@ -362,10 +404,11 @@ Gennaro, Rosario and Jarecki, Stanislaw and Krawczyk, Hugo and Rabin, Tal. Secur
     \textbf{\underline{Participant i}}  \> \textbf{\underline{Other Participants}}  \\
   \uncover<1-> { \secretone_i, b_i  \rgets \Zq \\ }
   \uncover<2-> { (\{ \shareone_{i1}, \ldots, \shareone_{in}\}, \{\secretone_i, a_{i1}, \ldots, a_{i(t-1)} \}) \rgets \shamir.\issueshares(\secretone_i, n, t) \> \\[1mm] }
-  \uncover<3-> { \vsscommitone_i  = \langle A_{i0}, \ldots, A_{i(t-1)} \rangle \gets \shamir.\commit(g, \secretone_i, a_{i1}, \ldots, a_{i(t-1)}) \text{\algcom Commit with base $g$} \> \\ }
+  \uncover<3-> { \vsscommitone_i  = \langle A_{i0}, \ldots, A_{i(t-1)} \rangle \gets \shamir.\commit(g, \secretone_i, a_{i1}, \ldots, a_{i(t-1)}) \\ \qquad \qquad \text{\algcom Commit with base $g$} \> \\ }
   \uncover<4-> { (\{ \sharetwo_{i1}, \ldots, \sharetwo_{in}\}, \{b_i, \hat{a_{i1}}, \ldots, \hat{a_{i(t-1)}} \}) \rgets \shamir.\issueshares(b_i, n, t) \> \\[1mm] }
-  \uncover<5-> { \vsscommittwo_i  = \langle \hat{A}_{i0}, \ldots, \hat{A}_{i(t-1)} \rangle \gets \shamir.\commit(h, b_i, \hat{a_{i1}}, \ldots, \hat{a_{i(t-1)}}) \text{\algcom Commit with base $h$} \> \\[1mm] }
-  \uncover<6-> { \vsscommitthree_i  \gets \langle (A_{i0}\hat{A}_{i0}),  \ldots,  (A_{i(t-1)}\hat{A}_{i(t-1)}) \rangle  \text{\algcom Pedersen commitment to each coefficient }  \\[1mm] }
+  \uncover<5-> { \vsscommittwo_i  = \langle \hat{A}_{i0}, \ldots, \hat{A}_{i(t-1)} \rangle \gets \shamir.\commit(h, b_i, \hat{a_{i1}}, \ldots, \hat{a_{i(t-1)}}) \\ \qquad \qquad \text{\algcom Commit with base $h$} \> \\[1mm] }
+  \uncover<6-> { \vsscommitthree_i  \gets \langle (A_{i0}\hat{A}_{i0}),  \ldots,  (A_{i(t-1)}\hat{A}_{i(t-1)}) \rangle  \\
+  \qquad \qquad \text{\algcom Pedersen commitment to each coefficient }  \\[1mm] }
 %
   \uncover<7-> { \qquad \qquad \qquad \qquad \qquad \qquad \sendmessageright{top=\text{ {\bf Broadcast}  $\vsscommitthree_i $   }}  \< \\[1mm] }
   \uncover<8-> { \qquad \qquad \qquad \qquad \qquad \qquad  \sendmessageright{top=\text{ {\bf Send} $\shareone_{ij},  \sharetwo_{ij}$ to player $j$   }}  \< \\ }
@@ -389,7 +432,7 @@ Gennaro, Rosario and Jarecki, Stanislaw and Krawczyk, Hugo and Rabin, Tal. Secur
   \uncover<3-> { \text{For all $j$ where } \shamir.\verify(\shareone_{ji}, \vsscommitone_j) \neq 1:  \> \\[2ex] }
   \uncover<4-> { \qquad \qquad  \excluded \gets \excluded \cup \{ j \}   \> \\[2ex] }
 %
-  \uncover<5-> { \sk_i = \sum_{j \in \excluded} \secretone + \sum_{k \in ( \qual \setminus \excluded)} \shareone_k     \\[2ex] }
+  \uncover<5-> { \sk_i = \sum_{j \in \excluded} \secretone + \sum_{k \in ( \qual \setminus \excluded)} \shareone_k \lambda_k     \\[2ex] }
   \uncover<6-> {  \pk \gets  \prod_{k \in \qual} A_{k0}  = g^{\sum_{i \in \qual} \secretone_i  }    \> \\[2ex] }
 }
 }
@@ -397,19 +440,6 @@ Gennaro, Rosario and Jarecki, Stanislaw and Krawczyk, Hugo and Rabin, Tal. Secur
 \end{tikzpicture}
 \end{frame}
 
-
-\begin{frame}
-  \centering
-\begin{tikzpicture}
-\node at (0,0) {
-\scalebox{0.9} {
-  \procedure{Protocol to Identify Cheaters}{
-    \textbf{\underline{Participant i}}  \> \textbf{\underline{Other Participants}}  \\
-}
-}
-};
-\end{tikzpicture}
-\end{frame}
 
 \begin{frame}
   \frametitle{Uniform Distribution of Key Material}
@@ -450,3 +480,16 @@ Gennaro, Rosario and Jarecki, Stanislaw and Krawczyk, Hugo and Rabin, Tal. Secur
 \end{document}
 
 
+
+\begin{frame}
+  \centering
+\begin{tikzpicture}
+\node at (0,0) {
+\scalebox{0.9} {
+  \procedure{Protocol to Identify Cheaters}{
+    \textbf{\underline{Participant i}}  \> \textbf{\underline{Other Participants}}  \\
+}
+}
+};
+\end{tikzpicture}
+\end{frame}

@@ -198,6 +198,16 @@ inner sep=2ex,
 \end{frame}
 
 \begin{frame}
+  \frametitle{Rushing Adversary}
+
+  \begin{itemize}
+    \item<1-> In a multi-party protocol where scheduling of communication is not enforced, an adversary can choose when to participate.
+    \item[]
+    \item<2-> A \emph{rushing adversary} is one that waits to ``speak last'', and so learns every other participant's contributions before selecting their own.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
   \huge
   \centering
   Distributed Key Generation
@@ -289,36 +299,32 @@ Gennaro, Rosario and Jarecki, Stanislaw and Krawczyk, Hugo and Rabin, Tal. Secur
   \end{itemize}
 \end{frame}
 
+\begin{frame}
+  \huge
+  \centering
+  Prior Work
+\end{frame}
 
 \begin{frame}
-  \frametitle{Prior Work (Non-Pairing Based DKGs)}
+  \frametitle{Pedersen DKG}
 
   \begin{itemize}
-    \item<1-> Pedersen DKG
-  \begin{itemize}
-      \item<2-> GJKR showed that an adversary can bias key material, but by a limited amount.
-      \item<3-> Relative proof of security, in the context for Schnorr threshold signing.
+      \item<1-> Each participant $i$ acts as the dealer and performs a Shamir secret sharing of a secret $\secretone_i$.
+    \item[]
+      \item<2-> The group's secret at the end is $\sk \gets \sum \secretone_i$
+    \item[]
+      \item<3-> GJKR showed that a rushing adversary can bias key material, but by a limited amount.
+    \item[]
+      \item<4-> Proven secure in the context of threshold signatures.
   \footnote{
   Rosario Gennaro, Stanislaw Jarecki, Hugo Krawczyk, Tal Rabin.
   Secure Applications of Pedersen's Distributed Key Generation Protocol,
   CT-RSA, 2003.}
   \end{itemize}
-    \item[]
-    \item<4-> GJKR
-  \begin{itemize}
-      \item<5-> Adds an additional round to ensure protection against key bias.
-      \item<6-> Proof of secrecy.
-  \end{itemize}
-  \end{itemize}
 \end{frame}
 
 
 
-\begin{frame}
-  \huge
-  \centering
-  Key-Bias Attack against Pedersen DKG
-\end{frame}
 
 \begin{frame}
   \centering
@@ -342,14 +348,14 @@ Gennaro, Rosario and Jarecki, Stanislaw and Krawczyk, Hugo and Rabin, Tal. Secur
 \end{frame}
 
 \begin{frame}
-  \frametitle{Key Bias Attack: High Level}
+  \frametitle{Key Bias Attack Against Pedersen DKG}
 
   \begin{itemize}
-    \item Performed by a \emph{rushing adversary}, the adversary that ``speaks last'' in the protocol.
+    \item<1-> A rushing adversary can learn the output public key before publishing their own contribution.
     \item[]
-    \item<2-> In Pedersen DKG, a rushing adversary can learn the output public key before other participants.
+    \item<2-> Nothing prevents this adversary from adaptively choosing their contributions.
     \item[]
-    \item<3-> Nothing prevents a rushing adversary from adaptively choosing their contributions to bias key material.
+    \item<3-> We show an example of this adversary forcing $\pk$ to be even without detection from other participants.
   \end{itemize}
 \end{frame}
 
@@ -376,22 +382,19 @@ Gennaro, Rosario and Jarecki, Stanislaw and Krawczyk, Hugo and Rabin, Tal. Secur
 
 
 \begin{frame}
-  \huge
-  \centering
-  GJKR Construction
-\end{frame}
-
-\begin{frame}
-  \frametitle{Overview}
+  \frametitle{GJKR}
 
   \begin{itemize}
-    \item Prevents the key-bias attack by using blinded commitments and verifiable extraction techniques.
+    \item Prevents key biasing by blinded commitments and verifiable extraction techniques,
+      but requires one additional network round.
     \item[]
     \item<2-> Participants issue a blinded VSS commitment in round one and then unblinds in round three.
     \item[]
     \item<3-> Share correctness is verified using the blinded commitment.
     \item[]
-    \item<4-> Contributions from cheating players can be extracted by $t$ honest players, preventing key bias.
+    \item<4-> Contributions from cheating players can be extracted in round three by $t$ honest players.
+    \item[]
+    \item<5-> Proven secure in a stand-alone manner.
   \end{itemize}
 \end{frame}
 
@@ -401,14 +404,13 @@ Gennaro, Rosario and Jarecki, Stanislaw and Krawczyk, Hugo and Rabin, Tal. Secur
 \node at (0,0) {
 \scalebox{0.9} {
   \procedure{GJKR Construction: Rounds One and Two}{
-    \textbf{\underline{Participant i}}  \> \textbf{\underline{Other Participants}}  \\
+    \textbf{\underline{Participant i}}  \qquad \qquad \qquad \qquad \qquad \qquad \qquad \qquad \qquad \qquad \qquad \textbf{\underline{Other Participants}}  \\
   \uncover<1-> { \secretone_i, b_i  \rgets \Zq \\ }
-  \uncover<2-> { (\{ \shareone_{i1}, \ldots, \shareone_{in}\}, \{\secretone_i, a_{i1}, \ldots, a_{i(t-1)} \}) \rgets \shamir.\issueshares(\secretone_i, n, t) \> \\[1mm] }
-  \uncover<3-> { \vsscommitone_i  = \langle A_{i0}, \ldots, A_{i(t-1)} \rangle \gets \shamir.\commit(g, \secretone_i, a_{i1}, \ldots, a_{i(t-1)}) \\ \qquad \qquad \text{\algcom Commit with base $g$} \> \\ }
-  \uncover<4-> { (\{ \sharetwo_{i1}, \ldots, \sharetwo_{in}\}, \{b_i, \hat{a_{i1}}, \ldots, \hat{a_{i(t-1)}} \}) \rgets \shamir.\issueshares(b_i, n, t) \> \\[1mm] }
-  \uncover<5-> { \vsscommittwo_i  = \langle \hat{A}_{i0}, \ldots, \hat{A}_{i(t-1)} \rangle \gets \shamir.\commit(h, b_i, \hat{a_{i1}}, \ldots, \hat{a_{i(t-1)}}) \\ \qquad \qquad \text{\algcom Commit with base $h$} \> \\[1mm] }
-  \uncover<6-> { \vsscommitthree_i  \gets \langle (A_{i0}\hat{A}_{i0}),  \ldots,  (A_{i(t-1)}\hat{A}_{i(t-1)}) \rangle  \\
-  \qquad \qquad \text{\algcom Pedersen commitment to each coefficient }  \\[1mm] }
+  \uncover<2-> { (\{ \shareone_{i1}, \ldots, \shareone_{in}\}, \{\secretone_i, a_{i1}, \ldots, a_{i(t-1)} \}) \rgets \shamir.\issueshares(\secretone_i, n, t)  \\[1mm] }
+  \uncover<3-> { \vsscommitone_i  = \langle A_{i0}, \ldots, A_{i(t-1)} \rangle \gets \shamir.\commit(g, \secretone_i, a_{i1}, \ldots, a_{i(t-1)}) \\ \qquad \qquad \text{\algcom Commit with base $g$}  \\ }
+  \uncover<4-> { (\{ \sharetwo_{i1}, \ldots, \sharetwo_{in}\}, \{b_i, \hat{a_{i1}}, \ldots, \hat{a_{i(t-1)}} \}) \rgets \shamir.\issueshares(b_i, n, t)  \\[1mm] }
+  \uncover<5-> { \vsscommittwo_i  = \langle \hat{A}_{i0}, \ldots, \hat{A}_{i(t-1)} \rangle \gets \shamir.\commit(h, b_i, \hat{a_{i1}}, \ldots, \hat{a_{i(t-1)}}) \\ \qquad \qquad \text{\algcom Commit with base $h$}  \\[1mm] }
+  \uncover<6-> { \vsscommitthree_i  \gets \langle (A_{i0}\hat{A}_{i0}),  \ldots,  (A_{i(t-1)}\hat{A}_{i(t-1)}) \rangle   \text{\algcom Pedersen commitment }  \\[1mm] }
 %
   \uncover<7-> { \qquad \qquad \qquad \qquad \qquad \qquad \sendmessageright{top=\text{ {\bf Broadcast}  $\vsscommitthree_i $   }}  \< \\[1mm] }
   \uncover<8-> { \qquad \qquad \qquad \qquad \qquad \qquad  \sendmessageright{top=\text{ {\bf Send} $\shareone_{ij},  \sharetwo_{ij}$ to player $j$   }}  \< \\ }
@@ -442,7 +444,7 @@ Gennaro, Rosario and Jarecki, Stanislaw and Krawczyk, Hugo and Rabin, Tal. Secur
 
 
 \begin{frame}
-  \frametitle{Uniform Distribution of Key Material}
+  \frametitle{Uniform Distribution of Key Material in GJKR}
 
   \begin{itemize}
     \item Cheating parties must choose their contributions having seen only the blinded commitment $\vsscommitthree_i$ from other players.

@@ -219,8 +219,9 @@ inner sep=2ex,
       \[f = \secretone + a_1 x + a_2 x^2 + a_3 x^3 + \ldots + a_{t-1}x^{t-1}  \]
 
     \item<3-> Each participant $i \in \{1, \ldots, n \}$ receives a share $\shareone_i \gets f(i) $.
-    \item<4-> A polynomial of degree $t-1$ is uniquely defined by $t$ points!
-    \item<5-> So $\secretone$ can be recovered by using $t$ shares to evaluate $f(0)$ (by polynomial interpolation).
+    \item<4-> Recall that $t$ points uniquely define a polynomial of degree $t-1$!
+    \item<5-> By polynomial interpolation, $\secretone = f(0) = \sum_{i=1}^t f(i) \lambda_i$.
+    \item<6-> $\lambda_i$ is $L_i(0)$, where $L_i$ is the $i\supth$ Lagrange polynomial for the set $\{1, \ldots, t \}$.
   \end{itemize}
 \end{frame}
 

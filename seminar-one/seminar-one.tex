@@ -511,6 +511,21 @@ Gennaro, Rosario and Jarecki, Stanislaw and Krawczyk, Hugo and Rabin, Tal. Secur
   \end{itemize}
 \end{frame}
 
+\begin{frame}
+  \frametitle{Proof Sketch}
+
+  \begin{itemize}
+    \item Input challenge $\dkgchal$, environment must output $\pk = \dkgchal$ while perfectly simulating the protocol.
+    \item<2-> Adversary controls $t-1$ parties $\corrupt$, environment controls $\honest$ where $\lvert \honest \rvert \geq t$.
+    \item<3-> Follow round one and two honestly for all simulated parties $\honest$.
+    \item<4-> Because the environment controls $t$ parties, it can learn $\secretone_i, i \in \corrupt$.
+    \item<5-> In round three, for one honest party $\ell$, set:
+  \begin{itemize}
+    \item<6-> $A_{\ell 0} \gets \dkgchal \cdot g^{\sum \secretone_i},\ i \in \honest \cup \corrupt \setminus \{ \ell\}$
+  \end{itemize}
+
+  \end{itemize}
+\end{frame}
 
 \begin{frame}
   \frametitle{Takeaways}
@@ -550,13 +565,3 @@ Gennaro, Rosario and Jarecki, Stanislaw and Krawczyk, Hugo and Rabin, Tal. Secur
 \end{tikzpicture}
 \end{frame}
 
-\begin{frame}
-  \frametitle{Proof Sketch}
-
-  \begin{itemize}
-    \item Input challenge $\dkgchal$, environment must output $\pk = \dkgchal$ while perfectly simulating the protocol.
-    \item Follow round one and two honestly.
-    \item Because the environment controls $t$ parties, it can output .
-    \item<3-> For round three,
-  \end{itemize}
-\end{frame}

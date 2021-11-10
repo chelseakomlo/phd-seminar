@@ -136,17 +136,18 @@ inner sep=2ex,
   \frametitle{Distributed Key Generation (informal)}
 
   \begin{itemize}
-    \item<1-> Generating key material without relying on a trusted entity is often desirable for distributed protocols.
+    \item<1-> In distributed protocols, generating key material without relying on a trusted entity is often desirable.
     \item[]
     \item<2-> In a DKG, $n$ parties (chosen beforehand) participate, all equally trusted.
     \item[]
     \item<3-> Goal is to:
   \begin{itemize}
-    \item<4-> Generate a secret that all $n$ parties contribute to but no party knows
+    \item<4-> Generate a secret that all parties contribute to but no party knows
     \item<5-> $t$ parties are required to recover.
+    \item<6-> While $t$ can equal $n$, the setting where $t \leq n$ is often desirable.
   \end{itemize}
-    \item[]
-    \item<6-> A common mechanism is to perform $n$-wise secret sharing with an aggregation step at the end (more on this later).
+    %\item[]
+    %\item<6-> A common mechanism is to perform $n$-wise secret sharing with an aggregation step at the end (more on this later).
   \end{itemize}
 \end{frame}
 
@@ -162,6 +163,43 @@ inner sep=2ex,
   \end{itemize}
 \end{frame}
 
+
+\begin{frame}
+  \frametitle{A Trivial $n$-out-of-$n$ DKG}
+
+  \begin{itemize}
+    \item<1-> Each party $i$ begins by:
+
+  \begin{itemize}
+    \item<2-> Sampling $x_i \rgets \Zq$
+    \item<3-> Generating $X_i \gets g^x$
+    \item<4-> Generating the commitment $c_i \gets H(X_i)$
+    \item<5-> Each party publishes their commitment to all other parties.
+  \end{itemize}
+    \item[]
+    \item<6-> After having received all other party's commitments, each party publishes $X_i$
+    \item[]
+    \item<7-> Each party checks that $c_i \iseq H(X_i)$. If not, they abort and identify misbehaving parties.
+    \item[]
+    \item<8-> Otherwise, $\sk \gets \sum x_i$  and $\pk \gets \prod X_i$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{$t$-out-of-$n$ DKGs}
+
+  \begin{itemize}
+    \item In practice, it is desirable to require only a \emph{subset} of the parties to be online.
+    \item[]
+    \item<2-> For example, secret keys may be lost or a server might be unavailable.
+    \item[]
+    \item<3-> $t$ is referred to as the \emph{threshold} number of participants required to participate.
+    \item[]
+    \item<4-> $n$ is the total number of participants.
+  \end{itemize}
+\end{frame}
+
+
 \begin{frame}
   \huge
   \centering
@@ -173,15 +211,13 @@ inner sep=2ex,
 
   \begin{itemize}
     \item<1-> Allows a \emph{dealer} to share a secret $\secretone$ among $n$ participants, where $t$ participants must cooperate to recover $\secretone$.
-    \item[]
     \item<2-> $f$ is the polynomial defined by the coefficients
 
       \[f = \secretone + a_1 x + a_2 x^2 + a_3 x^3 + \ldots + a_{t-1}x^{t-1}  \]
 
-    \item[]
     \item<3-> Each participant $i \in \{1, \ldots, n \}$ receives a share $\shareone_i \gets f(i) $.
-    \item[]
-    \item<4-> Recovering $\secretone$ is done by polynomial interpolation.
+    \item<4-> A polynomial of degree $t-1$ is uniquely defined by $t$ points!
+    \item<5-> So $\secretone$ can be recovered by using $t$ shares to evaluate $f(0)$ (by polynomial interpolation).
   \end{itemize}
 \end{frame}
 
@@ -189,9 +225,10 @@ inner sep=2ex,
   \frametitle{Verifiable Secret Sharing}
 
   \begin{itemize}
-    \item<1-> Allows participants to verify their share $\shareone_i = f(i)$ is on the same polynomial as all other participants.
+    \item<1-> Allows participants to verify their share $\shareone_i = f(i)$ is on the same polynomial as all other participants,
+      \emph{without} revealing $f$ directly.
     \item[]
-    \item<2-> Issue a commitment to $f$ as $\vsscommitone \gets \langle A_0, A_1, \ldots, A_{t-1}  \rangle$, where
+    \item<2-> Working in the discrete log setting: a commitment to $f$ is $\vsscommitone \gets \langle A_0, A_1, \ldots, A_{t-1}  \rangle$, where
 
       \[ A_0 \gets g^{\secretone},\ A_1 \gets g^{a_1}, \ldots \]
     \item[]
@@ -227,10 +264,11 @@ inner sep=2ex,
       \item<4-> Output to each party includes:
     \begin{enumerate}
       \item<5->[1.] Public key $\pk$
-      \item<6->[2.] The set $\qual$ of parties remaining at the end, where $t \leq \lvert \qual \rvert \leq n$ (because cheating parties are kicked out during protocol execution).
+      \item<6->[2.] The set $\qual$ of parties remaining at the end.
       \item<7->[3.] Their secret key share $\sk_i$.
     \end{enumerate}
 
+    \item<8->[2.] Here, $t \leq \lvert \qual \rvert \leq n$, because cheating parties can be detected and kicked out during protocol execution.
     \end{itemize}
     \item[]
     \item<8-> $\mathit{Recover}(\{ \sk_i \}_C) \rightarrow \sk$
@@ -260,12 +298,13 @@ Gennaro, Rosario and Jarecki, Stanislaw and Krawczyk, Hugo and Rabin, Tal. Secur
   \begin{itemize}
     \item<1-> \emph{Stand-Alone}: The DKG can be proven secure without reference to how it is used.
     \begin{itemize}
-      \item<2-> Nothing about $\sk$ is revealed beyond what is revealed by $\pk$.
-      \item<3-> Concretely, there exists a simulator that can simulate the protocol to an adversary for a challenge public key $\pk$ (from GJKR).
+      \item<2-> Nothing about $\sk$ is revealed beyond what is revealed by $\pk$ (from GJKR).
+      \item<3-> The protocol can be perfectly simulated to an adversary for a challenge public key.
+      \item<4-> In other words, the simulated DKG must output the challenge as the group's public key.
     \end{itemize}
 
     \item[]
-    \item<4-> \emph{Contextual}: Prove the security of the DKG in the context of demonstrating security of the protocol in which it is used.
+    \item<5-> \emph{Contextual}: Prove the security of the DKG in the context of demonstrating security of the protocol in which it is used.
   \footnote{
   Kobi Gurkan, Philipp Jovanovic, Mary Maller, Sarah Meiklejohn, Gilad Stern, Alin Tomescu.
   Aggregatable Distributed Key Generation, EUROCRYPT 2021 }
@@ -279,13 +318,16 @@ Gennaro, Rosario and Jarecki, Stanislaw and Krawczyk, Hugo and Rabin, Tal. Secur
     \item<1-> \emph{Stand-Alone}:
   \begin{itemize}
     \item<2-> Pro: Proving security means that the DKG can be used in any context.
-    \item<3-> Con: Very hard definition to achieve, requires guaranteed output delivery as adversaries can simply stop participating.
+    \item<3-> Con: Very hard definition to achieve, requires guaranteed output delivery.
+  \begin{itemize}
+    \item<4-> No notion of failure and/or rewinding in the existing definition.
+    \end{itemize}
     \end{itemize}
     \item[]
-    \item<4-> \emph{Contextual}:
+    \item<5-> \emph{Contextual}:
   \begin{itemize}
-    \item<5-> Pro: Allows for more efficient protocols to be proven secure (more on this later).
-    \item<6-> Con: Proofs are unwieldy and requires proving the security of the DKG over and over in different use cases.
+    \item<6-> Pro: Allows for more efficient protocols to be proven secure (more on this later).
+    \item<7-> Con: Proofs are unwieldy and requires proving the security of the DKG over and over in different use cases.
     \end{itemize}
   \end{itemize}
 \end{frame}
@@ -296,32 +338,42 @@ Gennaro, Rosario and Jarecki, Stanislaw and Krawczyk, Hugo and Rabin, Tal. Secur
   \begin{itemize}
     \item<1-> In a single-party setting, ensuring that a secret key is randomly sampled is easy.
     \item[]
-    \item<2-> In a multi-party setting, where the adversary participates in key generation,
-      ensuring the output key is uniformly distributed is harder.
+    \item<2-> In a multi-party setting, where the adversary is a participant,
+      ensuring key material is uniformly distributed is harder.
+    \item[]
+    \item<3-> For example: $\gamma \gets \alpha + \sum_{i=1}^n \beta_i$
+  \begin{itemize}
+    \item<4-> Here, $\alpha \rgets \Zq$ and each $b_i$ is chosen non-uniformly.
+    \item[]
+    \item<5-> $\gamma$ is random if each $\beta_i \in \Zq$ is chosen \emph{without} knowledge of $\alpha$.
+    \item[]
+    \item<6-> Otherwise, $\gamma$ is not random.
+  \end{itemize}
   \end{itemize}
 \end{frame}
 
 \begin{frame}
   \huge
   \centering
-  Prior Work
+  Current Landscape
 \end{frame}
 
 \begin{frame}
-  \frametitle{Pedersen DKG}
+  \frametitle{Pedersen DKG: Overview}
 
   \begin{itemize}
-      \item<1-> Each participant $i$ acts as the dealer and performs a Shamir secret sharing of a secret $\secretone_i$.
+    \item<1-> Each participant $i$ acts as the dealer and performs a Shamir secret sharing of a secret $\secretone_i$,
+      distributing shares $\shareone_{ij}$ to each other.
     \item[]
-      \item<2-> The group's secret at the end is $\sk \gets \sum \secretone_i$
+    \item<2-> The group's secret at the end is $\sk \gets \sum \secretone_i = \sum \sum \shareone_{ij} \lambda_i$.
     \item[]
-      \item<3-> GJKR showed that a rushing adversary can bias key material, but by a limited amount.
-    \item[]
-      \item<4-> Proven secure in the context of threshold signatures.
+    \item<3-> Proven secure in the context of threshold signatures.
   \footnote{
   Rosario Gennaro, Stanislaw Jarecki, Hugo Krawczyk, Tal Rabin.
   Secure Applications of Pedersen's Distributed Key Generation Protocol,
   CT-RSA, 2003.}
+    \item[]
+    \item<4-> A rushing adversary \emph{can} bias key material, but by a limited amount.
   \end{itemize}
 \end{frame}
 
@@ -341,7 +393,7 @@ Gennaro, Rosario and Jarecki, Stanislaw and Krawczyk, Hugo and Rabin, Tal. Secur
   \uncover<4-> { \> \sendmessageright{top=\text{ {\bf Broadcast}  $\vsscommitone_i $   }}  \< \\}
   \uncover<5-> { \> \sendmessageright{top=\text{ {\bf Send} $\shareone_{ij} $   }}  \< \\ }
   \uncover<6-> {  \shamir.\verify(\shareone_i, \vsscommitone_j) \iseq 1  \> \\ }
-  \uncover<7-> { \sk_i = \sum_{k \in \qual} \shareone_k \lambda_k,\ \ \text{$\qual$ are the players that issued valid shares. }    \\ }
+  \uncover<7-> { \sk_i = \sum_{k \in \qual} \shareone_k \lambda_k,\ \ \text{\algcom $\qual$ are the players that issued valid shares. }    \\ }
   \uncover<8-> {  \pk \gets  \prod_{k \in \qual} A_{k0}  = g^{\sum_{i \in \qual} \secretone_i  }   \> \\ }
 }
 }
@@ -384,7 +436,7 @@ Gennaro, Rosario and Jarecki, Stanislaw and Krawczyk, Hugo and Rabin, Tal. Secur
 
 
 \begin{frame}
-  \frametitle{GJKR}
+  \frametitle{GJKR: Overview}
 
   \begin{itemize}
     \item Prevents key biasing by blinded commitments and verifiable extraction techniques,
@@ -396,7 +448,7 @@ Gennaro, Rosario and Jarecki, Stanislaw and Krawczyk, Hugo and Rabin, Tal. Secur
     \item[]
     \item<4-> Contributions from cheating players can be extracted in round three by $t$ honest players.
     \item[]
-    \item<5-> Proven secure in a stand-alone manner.
+    \item<5-> Stand-alone security; assumes $t$ honest players.
   \end{itemize}
 \end{frame}
 
@@ -405,7 +457,7 @@ Gennaro, Rosario and Jarecki, Stanislaw and Krawczyk, Hugo and Rabin, Tal. Secur
 \begin{tikzpicture}
 \node at (0,0) {
 \scalebox{0.9} {
-  \procedure{GJKR Construction: Rounds One and Two}{
+  \procedure{GJKR Construction: Rounods One and Two}{
     \textbf{\underline{Participant i}}  \qquad \qquad \qquad \qquad \qquad \qquad \qquad \qquad \qquad \qquad \qquad \textbf{\underline{Other Participants}}  \\
   \uncover<1-> { \secretone_i, b_i  \rgets \Zq \\ }
   \uncover<2-> { (\{ \shareone_{i1}, \ldots, \shareone_{in}\}, \{\secretone_i, a_{i1}, \ldots, a_{i(t-1)} \}) \rgets \shamir.\issueshares(\secretone_i, n, t)  \\[1mm] }
@@ -496,4 +548,15 @@ Gennaro, Rosario and Jarecki, Stanislaw and Krawczyk, Hugo and Rabin, Tal. Secur
 }
 };
 \end{tikzpicture}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Proof Sketch}
+
+  \begin{itemize}
+    \item Input challenge $\dkgchal$, environment must output $\pk = \dkgchal$ while perfectly simulating the protocol.
+    \item Follow round one and two honestly.
+    \item Because the environment controls $t$ parties, it can output .
+    \item<3-> For round three,
+  \end{itemize}
 \end{frame}

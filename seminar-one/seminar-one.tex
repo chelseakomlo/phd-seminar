@@ -136,7 +136,7 @@ inner sep=2ex,
   \frametitle{Distributed Key Generation (informal)}
 
   \begin{itemize}
-    \item<1-> In distributed protocols, generating key material without relying on a trusted entity is often desirable.
+    \item<1-> Generating key material without relying on a trusted entity is often desirable for distributed protocols.
     \item[]
     \item<2-> In a DKG, $n$ parties (chosen beforehand) participate, all equally trusted.
     \item[]
@@ -157,7 +157,7 @@ inner sep=2ex,
   \begin{itemize}
     \item<1-> Key generation for threshold or multiparty signatures
     \item[]
-    \item<2-> Distributed Pseudorandom Functions
+    \item<2-> Distributed PRFs (League of Entropy)
     \item[]
     \item<3-> Key generation for anonymous token issuance (Privacy Pass)
   \end{itemize}
@@ -177,11 +177,14 @@ inner sep=2ex,
     \item<5-> Each party publishes their commitment to all other parties.
   \end{itemize}
     \item[]
-    \item<6-> After having received all other party's commitments, each party publishes $X_i$
-    \item[]
+    \item<6-> After having received all $c_1, \ldots, c_n$, each party publishes $X_i$
     \item<7-> Each party checks that $c_i \iseq H(X_i)$. If not, they abort and identify misbehaving parties.
-    \item[]
-    \item<8-> Otherwise, $\sk \gets \sum x_i$  and $\pk \gets \prod X_i$.
+    \item<8-> Otherwise:
+  \begin{itemize}
+    \item<9-> $\pk \gets \prod X_i$
+    \item<10-> While unknown to any party, $\sk \gets \sum x_i$
+  \end{itemize}
+
   \end{itemize}
 \end{frame}
 

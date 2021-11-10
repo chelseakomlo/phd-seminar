@@ -516,9 +516,10 @@ Gennaro, Rosario and Jarecki, Stanislaw and Krawczyk, Hugo and Rabin, Tal. Secur
 
   \begin{itemize}
     \item Input challenge $\dkgchal$, environment must output $\pk = \dkgchal$ while perfectly simulating the protocol.
-    \item<2-> Adversary controls the set $\corrupt$ of $t-1$ parties, environment controls $\honest$ where $\lvert \honest \rvert \geq t$.
-    \item<3-> Follow round one and two honestly for all simulated parties $\honest$.
-    \item<4-> Because the environment controls $t$ parties, it can learn $\secretone_i, i \in \corrupt$.
+    \item<2-> Adversary controls the set $\corrupt$, where $\lvert \corrupt \rvert \leq t-1$;
+    \item<3-> Environment simulates the set $\honest$, where $\lvert \honest \rvert \geq t$.
+    \item<4-> The environment follows round one and two honestly for all simulated partiest.
+    \item<5-> After receiving the adversary's contributions, the environment can derive $\secretone_i, i \in \corrupt$ (as it controls $t$ parties).
   \end{itemize}
 \end{frame}
 
@@ -527,7 +528,7 @@ Gennaro, Rosario and Jarecki, Stanislaw and Krawczyk, Hugo and Rabin, Tal. Secur
   \frametitle{Proof Sketch (cont'd)}
 
   \begin{itemize}
-    \item In round three, for one honest party $\ell$, set:
+    \item In round three, for one honest party $\ell$:
   \begin{itemize}
     \item<2-> Derive the commitment to the constant term relative to the adversary's secrets:
 

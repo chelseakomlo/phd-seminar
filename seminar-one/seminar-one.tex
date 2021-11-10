@@ -532,22 +532,28 @@ Gennaro, Rosario and Jarecki, Stanislaw and Krawczyk, Hugo and Rabin, Tal. Secur
   \begin{itemize}
     \item<2-> Derive the commitment to the constant term relative to the adversary's secrets:
 
-      \[ A_{\ell 0} \gets \dkgchal \cdot g^{\sum \secretone_i},\ i \in \honest \cup \corrupt \setminus \{ \ell\}  \]
+      \[ A_{\ell 0} \gets \dkgchal \cdot g^{- \sum \secretone_i},\ i \in \honest \cup \corrupt \setminus \{ \ell\}  \]
 
-    \item<3-> Derive the commitment to the coefficients  relative to the shares published in round one
+      Ensuring that:
+
+      \[ \pk = \prod A_{i0} = \dkgchal \cdot g^{\sum a_i0 - \sum a_i0}  = \dkgchal  \]
+
+    \item<3-> Derive all other commitments using shares published in round one
       \[ A_{\ell i} \gets  A_{\ell 0}^{\lambda_{\ell 0}} \cdot \prod g^{\shareone_{\ell j}\lambda_{\ell j }}   \]
+
+      ensuring the VSS check holds.
 
   \end{itemize}
   \end{itemize}
 \end{frame}
 
 \begin{frame}
-  \frametitle{Current Research}
+  \frametitle{Ongoing Research}
 
   \begin{itemize}
-    \item While GJKR protects against the key-bias attack that Pedersen DKG does not, it requires an additional network round.
+    \item GJKR protects key-bias attacks, but requires an additional network round.
     \item[]
-    \item<2-> Ideally, we can have a two-round DKG that is provable in a stand-alone manner.
+    \item<2-> Goal: a two-round DKG whose security is proven in a stand-alone manner.
     \item[]
     \item<3-> This is our ongoing work; stay tuned!
   \end{itemize}
@@ -558,13 +564,11 @@ Gennaro, Rosario and Jarecki, Stanislaw and Krawczyk, Hugo and Rabin, Tal. Secur
   \frametitle{Takeaways}
 
   \begin{itemize}
-    \item Distributed Key Generation protocols are a useful building block for distributing trust among a set of authorized parties.
-    \item[]
-    \item<2-> Properties taken for granted in the centralized model, such as uniform distribution of key material, are difficult to guarantee in a multi-party setting.
-    \item[]
-    \item<3-> Pedersen DKG is a simple DKG whose security is proven in some contexts but not in others.
-    \item[]
-    \item<4-> The GJKR construction is proven in a stand-alone manner, but requires more network rounds and computational complexity.
+    \item DKGs are a useful building block for distributing trust among set of parties.
+    \item<2-> Properties for centralized protocols are difficult to guarantee in a multi-party setting (such as uniform distribution of key material).
+    \item<3-> Pedersen DKG is simple and efficient, but must be proven seperately for each context which it is used.
+    \item<4-> GJKR is proven in a stand-alone manner, but at the loss of efficiency.
+    \item<5-> Our work achieves the best of both worlds; more to come soon!
   \end{itemize}
 \end{frame}
 

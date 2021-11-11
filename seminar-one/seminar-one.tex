@@ -152,6 +152,16 @@ inner sep=2ex,
 \end{frame}
 
 \begin{frame}
+  \frametitle{DKG Threat Model}
+
+  \begin{itemize}
+    \item<1-> At minimum, requires assuming the adversary can control up to $t-1$ players.
+    \item[]
+    \item<2-> If the adversary controlled $t$ players, they could trivially recover the secret.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
   \frametitle{Use Cases for DKGs}
 
   \begin{itemize}
@@ -272,7 +282,8 @@ inner sep=2ex,
       \item<7->[3.] Their secret key share $\sk_i$.
     \end{enumerate}
 
-    \item<8->[2.] Here, $t \leq \lvert \qual \rvert \leq n$, because cheating parties can be detected and kicked out during protocol execution.
+    \item<8-> Importantly:
+
     \end{itemize}
     \item[]
     \item<8-> $\mathit{Recover}(\{ \sk_i \}_C) \rightarrow \sk$
@@ -284,10 +295,23 @@ inner sep=2ex,
 \end{frame}
 
 \begin{frame}
+  \frametitle{On Determining $\qual$}
+
+  \begin{itemize}
+    \item<1-> Because cheating parties can be picked out during protocol execution,
+      \[ t \leq \lvert \qual \rvert \leq n \]
+    \item[]
+    \item<2-> If $\qual \not\geq t$, then the DKG simply fails, as $t$ parties are required for $\mathit{Recover}$.
+    \item[]
+    \item<3-> Parties perform a sub-protocol to identify and kick out cheaters.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
   \frametitle{Correctness of a DKG}
 
   \begin{itemize}
-    \item<1-> All subsets of $t$ shares define the same secret key $\sk$ (or any subset fulfilling the required access structure).
+    \item<1-> All subsets of $t$ shares define the same secret key $\sk$ (or any subset fulfilling the required access structure)
 \let\thefootnote\relax\footnote{
 Gennaro, Rosario and Jarecki, Stanislaw and Krawczyk, Hugo and Rabin, Tal. Secure Distributed Key Generation for Discrete-Log Based Cryptosystems. Journal of Cryptology, 2007
 }
@@ -308,7 +332,7 @@ Gennaro, Rosario and Jarecki, Stanislaw and Krawczyk, Hugo and Rabin, Tal. Secur
     \end{itemize}
 
     \item[]
-    \item<5-> \emph{Contextual}: Prove the security of the DKG in the context of demonstrating security of the protocol in which it is used.
+    \item<5-> \emph{Contextual}: Prove the security of the DKG in the context of demonstrating security of the protocol in which it is used
   \footnote{
   Kobi Gurkan, Philipp Jovanovic, Mary Maller, Sarah Meiklejohn, Gilad Stern, Alin Tomescu.
   Aggregatable Distributed Key Generation, EUROCRYPT 2021 }
@@ -443,16 +467,15 @@ Gennaro, Rosario and Jarecki, Stanislaw and Krawczyk, Hugo and Rabin, Tal. Secur
   \frametitle{GJKR: Overview}
 
   \begin{itemize}
-    \item Prevents key biasing by blinded commitments and verifiable extraction techniques,
-      but requires one additional network round.
+    \item Stand-alone security; secure against key biasing.
     \item[]
-    \item<2-> Participants issue a blinded VSS commitment in round one and then unblinds in round three.
+    \item<2-> Assumes $t$ honest players.
     \item[]
-    \item<3-> Share correctness is verified using the blinded commitment.
+    \item<3-> Participants issue a blinded VSS commitment in round one and then unblinds in round three.
     \item[]
-    \item<4-> Contributions from cheating players can be extracted in round three by $t$ honest players.
+    \item<4-> Share correctness is verified using blinded commitments.
     \item[]
-    \item<5-> Stand-alone security; assumes $t$ honest players.
+    \item<5-> Contributions from cheating players can be extracted in round three (by $t$ honest players).
   \end{itemize}
 \end{frame}
 
@@ -461,7 +484,7 @@ Gennaro, Rosario and Jarecki, Stanislaw and Krawczyk, Hugo and Rabin, Tal. Secur
 \begin{tikzpicture}
 \node at (0,0) {
 \scalebox{0.9} {
-  \procedure{GJKR Construction: Rounods One and Two}{
+  \procedure{GJKR Construction: Rounds One and Two}{
     \textbf{\underline{Participant i}}  \qquad \qquad \qquad \qquad \qquad \qquad \qquad \qquad \qquad \qquad \qquad \textbf{\underline{Other Participants}}  \\
   \uncover<1-> { \secretone_i, b_i  \rgets \Zq \\ }
   \uncover<2-> { (\{ \shareone_{i1}, \ldots, \shareone_{in}\}, \{\secretone_i, a_{i1}, \ldots, a_{i(t-1)} \}) \rgets \shamir.\issueshares(\secretone_i, n, t)  \\[1mm] }
